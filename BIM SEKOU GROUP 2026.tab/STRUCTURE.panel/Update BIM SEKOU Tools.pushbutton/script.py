@@ -2,7 +2,6 @@
 
 from pyrevit import forms
 from pyrevit.loader import sessionmgr
-from pyrevit import script
 import os
 import subprocess
 
@@ -20,13 +19,58 @@ EXTENSION_ROOT = os.path.abspath(
     )
 )
 
+REPO_URL = "https://github.com/mvthang2506-coder/BIM-SEKOU-GROUP-RevitTools.git"
 
-def run_git_pull():
+
+# ============================================================
+# Find Git
+# ============================================================
+
+def find_git():
+
+    # Git available in PATH
+    try:
+        result = subprocess.Popen(
+            ["git", "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+
+        result.communicate()
+
+        if result.returncode == 0:
+            return "git"
+
+    except:
+        pass
+
+    # Standard Git installation
+    git_paths = [
+        r"C:\Program Files\Git\cmd\git.exe",
+        r"C:\Program Files\Git\bin\git.exe",
+        r"C:\Program Files (x86)\Git\cmd\git.exe",
+        r"C:\Program Files (x86)\Git\bin\git.exe"
+    ]
+
+    for git_path in git_paths:
+
+        if os.path.exists(git_path):
+            return git_path
+
+    return None
+
+
+# ============================================================
+# Git Pull
+# ============================================================
+
+def run_git_pull(git_exe):
 
     try:
+
         process = subprocess.Popen(
             [
-                "git",
+                git_exe,
                 "-C",
                 EXTENSION_ROOT,
                 "pull",
@@ -47,32 +91,67 @@ def run_git_pull():
         return process.returncode, output
 
     except Exception as ex:
+
         return -1, str(ex)
 
 
-# ------------------------------------------------------------
-# Update
-# ------------------------------------------------------------
-
-return_code, output = run_git_pull()
-
+# ============================================================
+# Main
+# ============================================================
 
 # ------------------------------------------------------------
-# Error
+# Find Git
 # ------------------------------------------------------------
 
-if return_code != 0:
+git_exe = find_git()
+
+
+if not git_exe:
 
     forms.alert(
-        "Không thể cập nhật BIM SEKOU GROUP Tools.\n\n"
-        + output,
+        "Không tìm thấy Git trên máy này.\n\n"
+        "Vui lòng cài Git trước khi sử dụng chức năng Update.",
         title="BIM SEKOU GROUP - Update Error"
     )
 
 else:
 
     # --------------------------------------------------------
-    # Reload pyRevit
+    # Update
     # --------------------------------------------------------
 
-    sessionmgr.reload_pyrevit()
+    return_code, output = run_git_pull(git_exe)
+
+
+    # --------------------------------------------------------
+    # Error
+    # --------------------------------------------------------
+
+    if return_code != 0:
+
+        forms.alert(
+            "Không thể cập nhật BIM SEKOU GROUP Tools.\n\n"
+            + output,
+            title="BIM SEKOU GROUP - Update Error"
+        )
+
+    else:
+
+        # ----------------------------------------------------
+        # Success
+        # ----------------------------------------------------
+
+        forms.alert(
+            "BIM SEKOU GROUP Tools đã được cập nhật.\n\n"
+            "Git:\n"
+            + git_exe
+            + "\n\n"
+            + output,
+            title="BIM SEKOU GROUP - Update Complete"
+        )
+
+        # ----------------------------------------------------
+        # Reload pyRevit
+        # ----------------------------------------------------
+
+        sessionmgr.reload_pyrevit()

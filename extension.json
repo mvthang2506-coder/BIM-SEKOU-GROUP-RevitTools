@@ -1,0 +1,8 @@
+{
+  "name": "BIM SEKOU GROUP 2026",
+  "type": "extension",
+  "description": "BIM SEKOU GROUP pyRevit Tools",
+  "author": "BIM SEKOU GROUP",
+  "url": "https://github.com/mvthang2506-coder/BIM-SEKOU-GROUP-RevitTools.git",
+  "enable": "True"
+}
